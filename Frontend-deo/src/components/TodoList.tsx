@@ -50,26 +50,36 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
     dispatch(updateTodo(updatedTodo))
       .unwrap()
       .then(() => {
-        toast.success("Zadatak azuriran.");
+        const toastId = toast(
+          () => (
+            <div>
+              <span>Zadatak ažuriran</span>
+              <button
+                onClick={() => {
+                  dispatch(updateTodo(todo));
+                  toast.dismiss(toastId);
+                  toast.info("Undo uspešan.");
+                }}
+              >
+                Undo
+              </button>
+            </div>
+          ),
+          { autoClose: 5000 }
+        );
+
+        // Ako nije undo, obriši nakon 5s
+        setTimeout(() => {
+          const taskStillCompleted = updatedTodo.isCompleted;
+          if (taskStillCompleted) {
+            dispatch(deleteTodo(todo.id));
+            toast.info("Zadatak obrisan");
+          }
+        }, 5000);
       })
       .catch(() => {
-        toast.error("Greska pri azuriranju zadatka.");
+        toast.error("Greška prilikom ažuriranja");
       });
-
-    dispatch(deleteTodo(todo.id))
-      .unwrap()
-      .then(() => {
-        toast.info("Zadatak obrisan");
-      })
-      .catch(() => {
-        toast.error("Brisanje neuspešno");
-      });
-
-    if (!todo.isCompleted) {
-      setTimeout(() => {
-        dispatch(deleteTodo(todo.id));
-      }, 1000);
-    }
   };
 
   return (
