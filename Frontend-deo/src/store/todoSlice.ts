@@ -4,6 +4,7 @@ import { TodoItem } from "../models/TodoItem";
 export const fetchTodos = createAsyncThunk(
   "todos/fetchTodos",
   async (page: number = 1) => {
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     const res = await fetch(
       `https://localhost:44303/api/todo?page=${page}&pageSize=5`
     );
@@ -56,12 +57,14 @@ interface TodoState {
   items: TodoItem[];
   totalPages: number;
   currentPage: number;
+  loading: boolean;
 }
 
 const initialState: TodoState = {
   items: [],
   totalPages: 1,
   currentPage: 1,
+  loading: false,
 };
 
 const todoSlice = createSlice({
@@ -73,23 +76,55 @@ const todoSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchTodos.fulfilled, (state, action) => {
-      state.items = action.payload.data;
-      state.totalPages = action.payload.totalPages;
-      state.currentPage = action.payload.currentPage;
-    });
-    builder.addCase(deleteTodo.fulfilled, (state, action) => {
-      state.items = state.items.filter((todo) => todo.id !== action.payload);
-    });
-    builder.addCase(addTodo.fulfilled, (state, action) => {
-      state.items.push(action.payload);
-    });
-    /* builder.addCase(updateTodo.fulfilled, (state, action) => {
-      const index = state.items.findIndex((i) => i.id === action.payload.id);
-      if (index !== -1) {
-        state.items[index] = action.payload;
-      }
-    });*/
+    builder
+      .addCase(fetchTodos.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTodos.fulfilled, (state, action) => {
+        state.items = action.payload.data;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+        state.loading = false;
+      })
+      .addCase(fetchTodos.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(addTodo.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addTodo.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+        state.loading = false;
+      })
+      .addCase(addTodo.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(updateTodo.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateTodo.fulfilled, (state, action) => {
+        const index = state.items.findIndex((i) => i.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+        state.loading = false;
+      })
+      .addCase(updateTodo.rejected, (state) => {
+        state.loading = false;
+      })
+
+      .addCase(deleteTodo.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteTodo.fulfilled, (state, action) => {
+        state.items = state.items.filter((todo) => todo.id !== action.payload);
+        state.loading = false;
+      })
+      .addCase(deleteTodo.rejected, (state) => {
+        state.loading = false;
+      });
   },
 });
 

@@ -15,7 +15,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   const dispatch = useDispatch<AppDispatch>();
 
   //Dohvatanje todos iz Redux-a
-  const { items, currentPage, totalPages } = useSelector(
+  const { items, currentPage, totalPages, loading } = useSelector(
     (state: RootState) => state.todos
   );
 
@@ -75,6 +75,11 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   return (
     <div>
       <h2>Todo Lista Zadataka</h2>
+      {loading && (
+        <div style={{ textAlign: "center", margin: "1rem" }}>
+          <div className="loader" />
+        </div>
+      )}
       <div style={{ marginBottom: "2rem" }}>
         <AddTodoModal
           onTodoAdded={() => dispatch(fetchTodos(currentPage))}
