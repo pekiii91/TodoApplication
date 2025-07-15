@@ -34,9 +34,25 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   );
 
   //useState za sortiranje
-  const [sortOption, setSortOption] = useState<
+  /*const [sortOption, setSortOption] = useState<
     "date" | "completed" | "title-asc" | "title-desc"
+  >("date");*/
+  const [sortColumn, setSortColumn] = useState<
+    "title" | "date" | "isCompleted"
   >("date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  //Funkcija za rukovanje klikom na kolonu
+  const handleSortClick = (column: "title" | "date" | "isCompleted") => {
+    if (sortColumn === column) {
+      //Ako kliknes istu kolonu, promeni pravac (asc desc)
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      //Nova kolona, kreci sa "asc"
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "completed" | "pending"
@@ -64,18 +80,19 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
       todo.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      switch (sortOption) {
+      let result = 0;
+      switch (sortColumn) {
+        case "title":
+          result = a.title.localeCompare(b.title);
+          break;
         case "date":
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        case "completed":
-          return Number(a.isCompleted) - Number(b.isCompleted);
-        case "title-asc":
-          return a.title.localeCompare(b.title);
-        case "title-desc":
-          return b.title.localeCompare(a.title);
-        default:
-          return 0;
+          result = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case "isCompleted":
+          result = Number(a.isCompleted) - Number(b.isCompleted);
+          break;
       }
+      return sortDirection === "asc" ? result : -result;
     });
 
   const handleToggleComplete = (todo: TodoItem) => {
@@ -121,6 +138,38 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
   return (
     <div>
+      <div
+        style={{ display: "flex", fontWeight: "bold", marginBottom: "2rem" }}
+      >
+        <span
+          style={{ flex: 1, cursor: "pointer" }}
+          onClick={() => handleSortClick("title")}
+        >
+          Naziv
+          {sortColumn === "title" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+        </span>
+
+        <span
+          style={{ flex: 1, cursor: "pointer" }}
+          onClick={() => handleSortClick("date")}
+        >
+          Datum{" "}
+          {sortColumn === "date" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
+        </span>
+
+        <span
+          style={{ flex: 1, cursor: "pointer" }}
+          onClick={() => handleSortClick("isCompleted")}
+        >
+          Status{" "}
+          {sortColumn === "isCompleted"
+            ? sortDirection === "asc"
+              ? "▲"
+              : "▼"
+            : ""}
+        </span>
+      </div>
+
       <h2>Todo Lista Zadataka</h2>
 
       {/*Spinner (Loading indikator)*/}
@@ -165,7 +214,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
       </div>
 
       {/*select meni za izbor sortiranje*/}
-      <div style={{ marginBottom: "3rem" }}>
+      {/*<div style={{ marginBottom: "3rem" }}>
         <label htmlFor="sort"> Sortiraj po: </label>
         <select
           id="sort"
@@ -177,7 +226,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           <option value="title-asc">Nazivu (A-Z)</option>
           <option value="title-desc">Nazivu (A-Z)</option>
         </select>
-      </div>
+      </div> */}
 
       <div style={{ marginBottom: "1rem" }}>
         <strong>Status: </strong>
