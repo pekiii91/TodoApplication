@@ -11,9 +11,22 @@ interface Props {
   selectedDate: string; //2025-09-26
 }
 
+/**Helper funkcija */
+function isSameDayUTC(date1: string, selected: string): boolean {
+  const day1 = new Date(date1);
+  const day2 = new Date(selected);
+
+  return (
+    day1.getUTCFullYear() === day2.getUTCFullYear() &&
+    day1.getUTCMonth() === day2.getUTCMonth() &&
+    day1.getUTCDate() === day2.getUTCDate()
+  );
+}
+
 const TodoList: React.FC<Props> = ({ selectedDate }) => {
   const dispatch = useDispatch<AppDispatch>();
 
+  const [searchTerm, setSearchTerm] = useState("");
   //Dohvatanje todos iz Redux-a
   const { items, currentPage, totalPages, loading } = useSelector(
     (state: RootState) => state.todos
@@ -31,15 +44,21 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
   //Filtriraj po datumu
   const filterByDate = items.filter(
-    (todo) => todo.date?.substring(0, 10) === selectedDate
+    (todo) => todo.date && isSameDayUTC(todo.date, selectedDate)
   );
 
   //Filtriranje po statusu
-  const filteredTodos = filterByDate.filter((todo) => {
-    if (statusFilter === "completed") return todo.isCompleted;
-    if (statusFilter === "pending") return !todo.isCompleted;
-    return true;
-  });
+  const filteredTodos = filterByDate
+    .filter((todo) => {
+      if (statusFilter === "completed") return todo.isCompleted;
+      if (statusFilter === "pending") return !todo.isCompleted;
+      return true;
+    })
+    .filter(
+      (
+        todo //Pretraga po naslovu
+      ) => todo.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const handleToggleComplete = (todo: TodoItem) => {
     const updatedTodo = {
@@ -85,11 +104,14 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   return (
     <div>
       <h2>Todo Lista Zadataka</h2>
+
+      {/*Spinner (Loading indikator)*/}
       {loading && (
         <div style={{ textAlign: "center", margin: "1rem" }}>
           <div className="loader" />
         </div>
       )}
+      {/*Dodavanje AddTodoModal-a za dodavanje zadataka */}
       <div style={{ marginBottom: "2rem" }}>
         <AddTodoModal
           onTodoAdded={() => dispatch(fetchTodos(currentPage))}
@@ -110,6 +132,18 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           <option value="pending">Nezavršeni</option>
           <option value="completed">Završeni</option>
         </select>
+      </div>
+
+      {/*Pretraga po naslovu */}
+      <div style={{ marginBottom: "3rem" }}>
+        <label htmlFor="search"> Pretraga po naslovu: </label>
+        <input
+          id="search"
+          type="text"
+          placeholder="Unesite naslov...."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
@@ -173,6 +207,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         </button>
       </div>
 
+      {/*Izmena zadataka */}
       {editingTodo && (
         <EditTodoModal
           todo={editingTodo}
