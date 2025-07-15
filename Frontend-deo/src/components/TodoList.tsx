@@ -26,11 +26,17 @@ function isSameDayUTC(date1: string, selected: string): boolean {
 const TodoList: React.FC<Props> = ({ selectedDate }) => {
   const dispatch = useDispatch<AppDispatch>();
 
+  //Za pretragu po naslovu
   const [searchTerm, setSearchTerm] = useState("");
   //Dohvatanje todos iz Redux-a
   const { items, currentPage, totalPages, loading } = useSelector(
     (state: RootState) => state.todos
   );
+
+  //useState za sortiranje
+  const [sortOption, setSortOption] = useState<
+    "date" | "completed" | "title-asc" | "title-desc"
+  >("date");
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "completed" | "pending"
@@ -47,18 +53,30 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
     (todo) => todo.date && isSameDayUTC(todo.date, selectedDate)
   );
 
-  //Filtriranje po statusu
+  //Filtriranje po statusu, azuriram filteredTodos da sadrzi i sortiranje
   const filteredTodos = filterByDate
     .filter((todo) => {
       if (statusFilter === "completed") return todo.isCompleted;
       if (statusFilter === "pending") return !todo.isCompleted;
       return true;
     })
-    .filter(
-      (
-        todo //Pretraga po naslovu
-      ) => todo.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    .filter((todo) =>
+      todo.title.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortOption) {
+        case "date":
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case "completed":
+          return Number(a.isCompleted) - Number(b.isCompleted);
+        case "title-asc":
+          return a.title.localeCompare(b.title);
+        case "title-desc":
+          return b.title.localeCompare(a.title);
+        default:
+          return 0;
+      }
+    });
 
   const handleToggleComplete = (todo: TodoItem) => {
     const updatedTodo = {
@@ -144,6 +162,21 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+      </div>
+
+      {/*select meni za izbor sortiranje*/}
+      <div style={{ marginBottom: "3rem" }}>
+        <label htmlFor="sort"> Sortiraj po: </label>
+        <select
+          id="sort"
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value as typeof sortOption)}
+        >
+          <option value="date">Datum kreiranja</option>
+          <option value="completed">Zavrsenosti</option>
+          <option value="title-asc">Nazivu (A-Z)</option>
+          <option value="title-desc">Nazivu (A-Z)</option>
+        </select>
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
