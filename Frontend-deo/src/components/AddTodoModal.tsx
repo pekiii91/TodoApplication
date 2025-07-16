@@ -14,10 +14,12 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
   const [show, setShow] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [priority, setPriority] = useState<"low" | "medium" | "high">("low");
+  const [submitted, setSubmitted] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
 
   const handleSubmit = async () => {
+    setSubmitted(true); //aktivira validaciju
     if (!title.trim()) return;
 
     const newTodo = {
@@ -37,9 +39,17 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
       onTodoAdded(); // ponovno učitavanje liste
       setTitle("");
       setShow(false);
+      setSubmitted(false); //resetuje validaciju
     } catch (error) {
       console.error("Greška pri dodavanju zadatka:", error);
     }
+  };
+
+  // Boja pozadine za select na osnovu prioriteta
+  const priorityBgColor = {
+    low: "#d4edda",
+    medium: "#fff3cd",
+    high: "#f8d7da",
   };
 
   return (
@@ -60,7 +70,27 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
             placeholder="Naslov zadatka"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            style={{
+              border:
+                submitted && !title.trim() ? "1px solid red" : "1px solid #ccc",
+              padding: "0.5rem",
+              width: "30%",
+              marginBottom: "0.5rem",
+            }}
           />
+
+          {/*Validacija u boji */}
+          {submitted && !title.trim() && (
+            <div
+              style={{
+                color: "red",
+                fontSize: "0.9rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Naslov je obavezan!
+            </div>
+          )}
 
           <label htmlFor="priority"> Prioritet: </label>
           <select
@@ -69,6 +99,12 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
             onChange={(e) =>
               setPriority(e.target.value as "low" | "medium" | "high")
             }
+            style={{
+              backgroundColor: priorityBgColor[priority],
+              padding: "0.5rem",
+              width: "30%",
+              marginBottom: "0.5rem",
+            }}
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -86,14 +122,15 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
             </label>
           </div>
 
-          <button disabled={!title.trim()} onClick={handleSubmit}>
-            Kreiraj
-          </button>
+          <button onClick={handleSubmit}>Kreiraj</button>
           <button
-            onClick={() => setShow(false)}
+            onClick={() => {
+              setShow(false);
+              setSubmitted(false); // reset validacije
+            }}
             style={{ marginLeft: "0.5rem" }}
           >
-            Otkazi
+            Otkaži
           </button>
         </div>
       )}

@@ -17,9 +17,17 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
     todo.priority ?? "low"
   );
 
+  const [submitted, setSubmitted] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
 
   const handleUpdate = () => {
+    setSubmitted(true); //aktivira validaciju
+
+    if (!title.trim())
+      //zaustavlja ako je naslov prazan
+      return;
+
     const updatedTodo: TodoItem = {
       ...todo,
       title,
@@ -32,10 +40,17 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
       .then(() => {
         onUpdated(); // Osvežava listu
         onClose(); // Zatvori modal
+        setSubmitted(false);
       })
       .catch((err) => {
         console.error("Greška prilikom ažuriranja:", err);
       });
+  };
+
+  const priorityBgColor = {
+    low: "#d4edda",
+    medium: "#fff3cd",
+    high: "#f8d7da",
   };
 
   return (
@@ -54,8 +69,22 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
         placeholder="Naslov zadatka"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        style={{ marginBottom: "1rem", width: "100%" }}
+        style={{
+          marginBottom: "1rem",
+          width: "30%",
+          padding: "0.5rem",
+          border:
+            submitted && !title.trim() ? "1px solid red" : "1px solid #ccc",
+        }}
       />
+      {/**validacija u boji */}
+      {submitted && !title.trim() && (
+        <div
+          style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}
+        >
+          Naslov je obavezan!
+        </div>
+      )}
 
       <div style={{ marginBottom: "1rem" }}>
         <label>
@@ -75,6 +104,11 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
           onChange={(e) =>
             setPriority(e.target.value as "low" | "medium" | "high")
           }
+          style={{
+            backgroundColor: priorityBgColor[priority],
+            padding: "0.5rem",
+            width: "30%",
+          }}
         >
           <option value="low">Low</option>
           <option value="medium">Medium</option>
@@ -82,9 +116,7 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
         </select>
       </div>
 
-      <button disabled={!title.trim()} onClick={handleUpdate}>
-        Sačuvaj
-      </button>
+      <button onClick={handleUpdate}>Sačuvaj</button>
       <button onClick={onClose} style={{ marginLeft: "0.5rem" }}>
         Otkaži
       </button>
