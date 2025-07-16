@@ -12,5 +12,7 @@ namespace TodoApplication.Models
         public bool IsCompleted { get; set; }
 
         public DateTime Date { get; set; } = DateTime.Today;
+
+        public string Priority { get; set; } // Low, Medium, High
     }
 }

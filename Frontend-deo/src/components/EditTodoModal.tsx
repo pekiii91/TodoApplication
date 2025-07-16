@@ -1,5 +1,8 @@
 import React, { useState } from "react";
 import { TodoItem } from "../models/TodoItem";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../store/store";
+import { updateTodo } from "../store/todoSlice";
 
 interface Props {
   todo: TodoItem;
@@ -10,26 +13,29 @@ interface Props {
 const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
   const [title, setTitle] = useState(todo.title);
   const [isCompleted, setIsCompleted] = useState(todo.isCompleted);
+  const [priority, setPriority] = useState<"low" | "medium" | "high">(
+    todo.priority ?? "low"
+  );
 
-  const handleUpdate = async () => {
-    try {
-      await fetch(`https://localhost:44303/api/todo/${todo.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...todo,
-          title,
-          isCompleted,
-        }),
+  const dispatch = useDispatch<AppDispatch>();
+
+  const handleUpdate = () => {
+    const updatedTodo: TodoItem = {
+      ...todo,
+      title,
+      isCompleted,
+      priority,
+    };
+
+    dispatch(updateTodo(updatedTodo))
+      .unwrap()
+      .then(() => {
+        onUpdated(); // Osvežava listu
+        onClose(); // Zatvori modal
+      })
+      .catch((err) => {
+        console.error("Greška prilikom ažuriranja:", err);
       });
-
-      onUpdated(); // Osvežava listu
-      onClose(); // Zatvori modal
-    } catch (error) {
-      console.error("Greška pri ažuriranju zadatka:", error);
-    }
   };
 
   return (
@@ -58,9 +64,24 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
             checked={isCompleted}
             onChange={(e) => setIsCompleted(e.target.checked)}
           />
-          Završeno
+          Završen
         </label>
       </div>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label>Prioritet: </label>
+        <select
+          value={priority}
+          onChange={(e) =>
+            setPriority(e.target.value as "low" | "medium" | "high")
+          }
+        >
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
       <button disabled={!title.trim()} onClick={handleUpdate}>
         Sačuvaj
       </button>

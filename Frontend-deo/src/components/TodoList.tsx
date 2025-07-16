@@ -138,6 +138,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
   return (
     <div>
+      {/*UI klikabilne, sortiranje */}
       <div
         style={{ display: "flex", fontWeight: "bold", marginBottom: "2rem" }}
       >
@@ -213,21 +214,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         />
       </div>
 
-      {/*select meni za izbor sortiranje*/}
-      {/*<div style={{ marginBottom: "3rem" }}>
-        <label htmlFor="sort"> Sortiraj po: </label>
-        <select
-          id="sort"
-          value={sortOption}
-          onChange={(e) => setSortOption(e.target.value as typeof sortOption)}
-        >
-          <option value="date">Datum kreiranja</option>
-          <option value="completed">Zavrsenosti</option>
-          <option value="title-asc">Nazivu (A-Z)</option>
-          <option value="title-desc">Nazivu (A-Z)</option>
-        </select>
-      </div> */}
-
       <div style={{ marginBottom: "1rem" }}>
         <strong>Status: </strong>
         Završeni: {items.filter((t) => t.isCompleted).length} / Ukupno:
@@ -258,6 +244,26 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
               }}
             >
               {todo.title}
+            </span>
+
+            {/**Vizuelni prikaz priority uz svaki zadatak */}
+            <span
+              style={{
+                marginLeft: "3rem",
+                padding: "0.2rem 0.5",
+                borderRadius: "4px",
+                fontSize: "1rem",
+                fontWeight: "bold",
+                backgroundColor:
+                  todo.priroty === "high"
+                    ? "#ff4d4d"
+                    : todo.priroty === "medium"
+                    ? "#ffcc00"
+                    : "#66cc66",
+                color: "#fff",
+              }}
+            >
+              {todo.priority.toUpperCase()}
             </span>
 
             <button

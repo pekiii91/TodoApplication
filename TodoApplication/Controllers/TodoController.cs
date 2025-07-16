@@ -50,6 +50,10 @@ namespace TodoApplication.Controllers
             if (!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
+
+            if (string.IsNullOrWhiteSpace(todo.Priority))
+                todo.Priority = "low";
+
             _context.Todos.Add(todo);
             _context.SaveChanges();
 
@@ -70,13 +74,12 @@ namespace TodoApplication.Controllers
             existingTodo.Title = updatedTodo.Title;
             existingTodo.IsCompleted = updatedTodo.IsCompleted;
             existingTodo.Date = updatedTodo.Date;
+            existingTodo.Priority = string.IsNullOrWhiteSpace(updatedTodo.Priority) ? "low" : updatedTodo.Priority;
 
             _context.SaveChanges();
 
             return Ok(existingTodo);
         }
-
-
 
         [HttpDelete("{id}")]
         public IActionResult DeleteTodo(int id) 

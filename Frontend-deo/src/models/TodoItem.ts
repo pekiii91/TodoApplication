@@ -3,4 +3,5 @@ export interface TodoItem {
   title: string;
   isCompleted: boolean;
   date: string;
+  priority: "low" | "medium" | "high";
 }

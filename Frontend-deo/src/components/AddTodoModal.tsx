@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../store/store";
 import { fetchTodos, setCurrentPage } from "../store/todoSlice";
+import { addTodo } from "../store/todoSlice";
 
 interface Props {
   onTodoAdded: () => void;
@@ -12,6 +13,7 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
   const [title, setTitle] = useState("");
   const [show, setShow] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [priority, setPriority] = useState<"low" | "medium" | "high">("low");
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -21,17 +23,12 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
     const newTodo = {
       title,
       isCompleted,
-      date: `${selectedDate}T00:00:00Z`, //new Date().toISOString(), //format koji backend prihvata
+      date: `${selectedDate}T00:00:00Z`, //format koji backend prihvata
+      priority,
     };
 
     try {
-      await fetch("https://localhost:44303/api/todo", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTodo),
-      });
+      await dispatch(addTodo(newTodo)).unwrap();
 
       // Resetuj paginaciju i ponovo učitaj sa 1. strane
       dispatch(setCurrentPage(1));
@@ -64,11 +61,31 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <input
-            type="checkbox"
-            checked={isCompleted}
-            onChange={() => setIsCompleted(!isCompleted)}
-          />
+
+          <label htmlFor="priority"> Prioritet: </label>
+          <select
+            id="priority"
+            value={priority}
+            onChange={(e) =>
+              setPriority(e.target.value as "low" | "medium" | "high")
+            }
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+
+          <div style={{ marginTop: "1rem" }}>
+            <label>
+              <input
+                type="checkbox"
+                checked={isCompleted}
+                onChange={() => setIsCompleted(!isCompleted)}
+              />
+              Završen
+            </label>
+          </div>
+
           <button disabled={!title.trim()} onClick={handleSubmit}>
             Kreiraj
           </button>
