@@ -255,9 +255,9 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
                 fontSize: "1rem",
                 fontWeight: "bold",
                 backgroundColor:
-                  todo.priroty === "high"
+                  todo.priority === "high"
                     ? "#ff4d4d"
-                    : todo.priroty === "medium"
+                    : todo.priority === "medium"
                     ? "#ffcc00"
                     : "#66cc66",
                 color: "#fff",
