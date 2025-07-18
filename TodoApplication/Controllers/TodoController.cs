@@ -17,15 +17,24 @@ namespace TodoApplication.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetTodos([FromQuery] int page = 1, [FromQuery] int pageSize = 5)
+        public IActionResult GetTodos([FromQuery] int page = 1, [FromQuery] int pageSize = 5,
+            [FromQuery] bool showArchived = false)
         {
             if (page <= 0 || pageSize <= 0)
                 return BadRequest("Neispravni parametri.");
 
             var skip = (page - 1) * pageSize;
-            var total = _context.Todos.Count();
 
-            var todos = _context.Todos
+            //Filtriraj po arhiviranju
+            var query = _context.Todos.AsQueryable();
+
+            //Ako ne tražimo arhivirane, filtriraj samo aktivne
+            if (!showArchived)
+                query = query.Where(t => !t.IsArchived);
+
+            var total = query.Count();
+
+            var todos = query
                 .OrderBy(x => x.Id)
                 .Skip(skip)
                 .Take(pageSize)
@@ -38,10 +47,7 @@ namespace TodoApplication.Controllers
                 totalItems = total,
                 totalPages = (int)Math.Ceiling((double)total / pageSize)
             };
-
-
             return Ok(response);
-
         }
 
         [HttpPost]
@@ -54,10 +60,25 @@ namespace TodoApplication.Controllers
             if (string.IsNullOrWhiteSpace(todo.Priority))
                 todo.Priority = "low";
 
+            todo.IsArchived = false;  
+
             _context.Todos.Add(todo);
             _context.SaveChanges();
 
             return Ok(todo); // Vraćam kreirani todo kao JSON response
+        }
+
+        [HttpPut("{id}/archive")]
+        public IActionResult ArchiveTodo(int id)
+        {
+            var todo = _context.Todos.Find(id);
+            if (todo == null)
+                return NotFound();
+
+            todo.IsArchived = true;
+            _context.SaveChanges();
+
+            return Ok(todo);
         }
 
         [HttpPut("{id}")] 
@@ -82,12 +103,14 @@ namespace TodoApplication.Controllers
         }
 
         [HttpDelete("{id}")]
-        public IActionResult DeleteTodo(int id) 
+        public IActionResult ArchivedTodo(int id) 
         {
             var todo = _context.Todos.Find(id);
             if(todo == null)
                 return NotFound();
 
+            // Ne brisem, samo arhiviram
+            todo.IsArchived = true;
             _context.Todos.Remove(todo);
             _context.SaveChanges();
             return NoContent();

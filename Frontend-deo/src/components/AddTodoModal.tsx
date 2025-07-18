@@ -27,6 +27,7 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
       isCompleted,
       date: `${selectedDate}T00:00:00Z`, //format koji backend prihvata
       priority,
+      isArchived: false, // ← OVO JE BITNO
     };
 
     try {
@@ -108,7 +109,7 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
-            <option value="High">High</option>
+            <option value="high">High</option>
           </select>
 
           <div style={{ marginTop: "1rem" }}>

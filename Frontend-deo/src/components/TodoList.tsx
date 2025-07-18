@@ -3,7 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import AddTodoModal from "./AddTodoModal";
 import EditTodoModal from "./EditTodoModal";
 import { RootState, AppDispatch } from "../store/store";
-import { fetchTodos, deleteTodo, updateTodo } from "../store/todoSlice";
+import {
+  fetchTodos,
+  updateTodo,
+  fetchArchivedTodos,
+  archivedTodo,
+} from "../store/todoSlice";
 import { TodoItem } from "../models/TodoItem";
 import { toast } from "react-toastify";
 
@@ -24,6 +29,9 @@ function isSameDayUTC(date1: string, selected: string): boolean {
 }
 
 const TodoList: React.FC<Props> = ({ selectedDate }) => {
+  const [showArchived, setShowArchived] = useState(false);
+
+  //Za arhiviranje
   const dispatch = useDispatch<AppDispatch>();
 
   //Za pretragu po naslovu
@@ -34,9 +42,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   );
 
   //useState za sortiranje
-  /*const [sortOption, setSortOption] = useState<
-    "date" | "completed" | "title-asc" | "title-desc"
-  >("date");*/
   const [sortColumn, setSortColumn] = useState<
     "title" | "date" | "isCompleted"
   >("date");
@@ -61,8 +66,12 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
 
   useEffect(() => {
-    dispatch(fetchTodos(currentPage));
-  }, [dispatch, currentPage]);
+    if (showArchived) {
+      dispatch(fetchArchivedTodos({ page: currentPage, pageSize: 5 }));
+    } else {
+      dispatch(fetchTodos(currentPage));
+    }
+  }, [dispatch, currentPage, showArchived]);
 
   //Filtriraj po datumu
   const filterByDate = items.filter(
@@ -79,6 +88,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
     .filter((todo) =>
       todo.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
+    .filter((todo) => (showArchived ? todo.isArchived : !todo.isArchived))
     .sort((a, b) => {
       let result = 0;
       switch (sortColumn) {
@@ -121,15 +131,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           ),
           { autoClose: 5000 }
         );
-
-        // Ako nije undo, obriši nakon 5s
-        setTimeout(() => {
-          const taskStillCompleted = updatedTodo.isCompleted;
-          if (taskStillCompleted) {
-            dispatch(deleteTodo(todo.id));
-            toast.info("Zadatak obrisan");
-          }
-        }, 5000);
       })
       .catch(() => {
         toast.error("Greška prilikom ažuriranja");
@@ -187,6 +188,18 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         />
       </div>
 
+      {/*Dugme za ukljucivanje/iskljucivanje arhiviranih zadataka*/}
+      <div style={{ marginBottom: "1rem" }}>
+        <label>
+          <input
+            type="checkbox"
+            checked={showArchived}
+            onChange={(e) => setShowArchived(e.target.checked)}
+          />
+          Prikaži arhivirane zadatke
+        </label>
+      </div>
+
       <div style={{ marginBottom: "2rem" }}>
         <label htmlFor="filter">Prikaži: </label>
         <select
@@ -234,7 +247,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
               type="checkbox"
               checked={todo.isCompleted}
               onChange={() => handleToggleComplete(todo)}
-              style={{ marginRight: "0.5" }}
+              style={{ marginRight: "0.5rem" }}
             />
             <span
               style={{
@@ -272,6 +285,30 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
             >
               Izmeni
             </button>
+
+            {/*Dugme za arhiviranje svakog zadatka (ako nije arhiviran) */}
+            {!todo.isArchived && (
+              <button
+                onClick={() =>
+                  dispatch(archivedTodo(todo.id))
+                    .unwrap()
+                    .then(() => {
+                      toast.success("Zadatak arhiviran.");
+                      if (showArchived) {
+                        dispatch(
+                          fetchArchivedTodos({ page: currentPage, pageSize: 5 })
+                        );
+                      } else {
+                        dispatch(fetchTodos(currentPage));
+                      }
+                    })
+                    .catch(() => toast.error("Greška pri arhiviranju."))
+                }
+                style={{ marginLeft: "1rem", color: "gray" }}
+              >
+                Arhiviraj
+              </button>
+            )}
           </li>
         ))}
       </ul>

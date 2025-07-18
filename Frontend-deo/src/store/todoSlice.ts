@@ -5,6 +5,7 @@ export const fetchTodos = createAsyncThunk(
   "todos/fetchTodos",
   async (page: number = 1) => {
     await new Promise((resolve) => setTimeout(resolve, 1500));
+
     const res = await fetch(
       `https://localhost:44303/api/todo?page=${page}&pageSize=5`
     );
@@ -53,6 +54,28 @@ export const updateTodo = createAsyncThunk(
   }
 );
 
+export const fetchArchivedTodos = createAsyncThunk(
+  "todos/fetchArchivedTodos",
+  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+    const res = await fetch(
+      `https://localhost:44303/api/todo?page=${page}&pageSize=${pageSize}&showArchived=true`
+    );
+    const data = await res.json();
+    return data; // { data: [], currentPage, totalPages }
+  }
+);
+
+export const archivedTodo = createAsyncThunk(
+  "todos/archiveTodo",
+  async (id: number) => {
+    const res = await fetch(`https://localhost:44303/api/todo/${id}/archive`, {
+      method: "PUT",
+    });
+    const data = await res.json();
+    return data as TodoItem;
+  }
+);
+
 interface TodoState {
   items: TodoItem[];
   totalPages: number;
@@ -77,6 +100,26 @@ const todoSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      //Arhiviranje zadataka
+      .addCase(archivedTodo.fulfilled, (state, action) => {
+        const index = state.items.findIndex((i) => i.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
+      })
+      //Prikaz arhiviranih
+      .addCase(fetchArchivedTodos.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchArchivedTodos.fulfilled, (state, action) => {
+        state.items = action.payload.data;
+        state.totalPages = action.payload.totalPages;
+        state.currentPage = action.payload.currentPage;
+        state.loading = false;
+      })
+      .addCase(fetchArchivedTodos.rejected, (state) => {
+        state.loading = false;
+      })
       .addCase(fetchTodos.pending, (state) => {
         state.loading = true;
       })

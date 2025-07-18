@@ -79,6 +79,11 @@
         "Name": "pageSize",
         "Type": "System.Int32",
         "IsRequired": false
+      },
+      {
+        "Name": "showArchived",
+        "Type": "System.Boolean",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -122,9 +127,25 @@
   },
   {
     "ContainingType": "TodoApplication.Controllers.TodoController",
-    "Method": "DeleteTodo",
+    "Method": "ArchivedTodo",
     "RelativePath": "api/Todo/{id}",
     "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TodoApplication.Controllers.TodoController",
+    "Method": "ArchiveTodo",
+    "RelativePath": "api/Todo/{id}/archive",
+    "HttpMethod": "PUT",
     "IsController": true,
     "Order": 0,
     "Parameters": [

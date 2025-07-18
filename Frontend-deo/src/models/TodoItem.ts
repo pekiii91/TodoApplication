@@ -4,4 +4,5 @@ export interface TodoItem {
   isCompleted: boolean;
   date: string;
   priority: "low" | "medium" | "high";
+  isArchived?: boolean;
 }
