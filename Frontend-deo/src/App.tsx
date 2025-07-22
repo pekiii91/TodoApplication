@@ -1,7 +1,7 @@
 import TodoList from "./components/TodoList";
 import "./App.css";
 import RandomQuotes from "./components/RandomQuotes";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -16,30 +16,13 @@ function App() {
   //izvlacimo datum iz URL
   const { dateParam } = useParams();
   //logika za navigaciju
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
 
   const today = new Date();
 
   const selectedDate = dateParam
     ? new Date(dateParam.replace(/-/g, "/"))
     : today;
-
-  const formatDisplayDate = (d: Date) =>
-    d.toLocaleDateString("sr-RS", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-
-  const navigateTo = (date: Date) => {
-    const urlDate = date
-      .toLocaleDateString("sr-RS")
-      .split(".")
-      .map((part) => part.trim())
-      .reverse()
-      .join("-");
-    navigate(`/${urlDate}`);
-  };
 
   const previousDay = new Date(selectedDate);
   previousDay.setDate(selectedDate.getDate() - 1);
@@ -67,30 +50,9 @@ function App() {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
-      <div
-        style={{
-          backgroundColor: "#ac1b49",
-          padding: "1rem",
-          marginBottom: "1rem",
-          /*dodajemo*/
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <button onClick={() => navigateTo(previousDay)}>
-          ← {formatDisplayDate(previousDay)}
-        </button>
-        <span>
-          📅 Datum: <strong>{formatDisplayDate(selectedDate)}</strong>
-        </span>
-        <button onClick={() => navigateTo(nextDay)}>
-          {formatDisplayDate(nextDay)} →
-        </button>
-      </div>
       <RandomQuotes />
       <h1>TODO aplikacija</h1>
-      <TodoList selectedDate={formattedDate} />
+      <TodoList selectedDate={new Date(formattedDate)} />
       <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );

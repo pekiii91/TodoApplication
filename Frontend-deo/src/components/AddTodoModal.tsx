@@ -6,7 +6,7 @@ import { addTodo } from "../store/todoSlice";
 
 interface Props {
   onTodoAdded: () => void;
-  selectedDate: string;
+  selectedDate: Date | null;
 }
 
 const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
@@ -25,9 +25,9 @@ const AddTodoModal: React.FC<Props> = ({ onTodoAdded, selectedDate }) => {
     const newTodo = {
       title,
       isCompleted,
-      date: `${selectedDate}T00:00:00Z`, //format koji backend prihvata
+      date: (selectedDate ?? new Date()).toISOString().substring(0, 10),
       priority,
-      isArchived: false, // ← OVO JE BITNO
+      isArchived: false,
     };
 
     try {

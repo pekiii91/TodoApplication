@@ -8,78 +8,74 @@ import {
   updateTodo,
   fetchArchivedTodos,
   archivedTodo,
+  setCurrentPage,
 } from "../store/todoSlice";
 import { TodoItem } from "../models/TodoItem";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Props {
-  selectedDate: string; //2025-09-26
+  selectedDate: Date | null;
 }
-
-/**Helper funkcija */
-function isSameDayUTC(date1: string, selected: string): boolean {
-  const day1 = new Date(date1);
-  const day2 = new Date(selected);
-
-  return (
-    day1.getUTCFullYear() === day2.getUTCFullYear() &&
-    day1.getUTCMonth() === day2.getUTCMonth() &&
-    day1.getUTCDate() === day2.getUTCDate()
-  );
-}
-
-const TodoList: React.FC<Props> = ({ selectedDate }) => {
+const TodoList: React.FC<Props> = () => {
   const [showArchived, setShowArchived] = useState(false);
-
-  //Za arhiviranje
   const dispatch = useDispatch<AppDispatch>();
 
-  //Za pretragu po naslovu
   const [searchTerm, setSearchTerm] = useState("");
-  //Dohvatanje todos iz Redux-a
   const { items, currentPage, totalPages, loading } = useSelector(
     (state: RootState) => state.todos
   );
 
-  //useState za sortiranje
   const [sortColumn, setSortColumn] = useState<
     "title" | "date" | "isCompleted"
   >("date");
+
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  //Funkcija za rukovanje klikom na kolonu
-  const handleSortClick = (column: "title" | "date" | "isCompleted") => {
-    if (sortColumn === column) {
-      //Ako kliknes istu kolonu, promeni pravac (asc desc)
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      //Nova kolona, kreci sa "asc"
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
-  };
-
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "completed" | "pending"
   >("all");
 
+  const handleSortClick = (column: "title" | "date" | "isCompleted") => {
+    if (sortColumn === column) {
+      // Ako klikneš istu kolonu, promeni pravac (asc <-> desc)
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Nova kolona, kreći sa "asc"
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
 
   useEffect(() => {
     if (showArchived) {
       dispatch(fetchArchivedTodos({ page: currentPage, pageSize: 5 }));
     } else {
-      dispatch(fetchTodos(currentPage));
+      dispatch(setCurrentPage(currentPage));
     }
-  }, [dispatch, currentPage, showArchived]);
+  }, [dispatch, currentPage, showArchived, selectedDate]);
 
-  //Filtriraj po datumu
-  const filterByDate = items.filter(
-    (todo) => todo.date && isSameDayUTC(todo.date, selectedDate)
-  );
+  //Lokalna filtracija po datumu
+  function isSameDayUTC(date1: Date, date2: Date): boolean {
+    return (
+      date1.getUTCFullYear() === date2.getUTCFullYear() &&
+      date1.getUTCMonth() === date2.getUTCMonth() &&
+      date1.getUTCDate() === date2.getUTCDate()
+    );
+  }
 
-  //Filtriranje po statusu, azuriram filteredTodos da sadrzi i sortiranje
-  const filteredTodos = filterByDate
+  const dateFilteredTodos = selectedDate
+    ? items.filter((todo) =>
+        todo.date
+          ? isSameDayUTC(new Date(todo.date + "T00:00:00"), selectedDate)
+          : false
+      )
+    : items;
+
+  const filteredTodos = dateFilteredTodos
     .filter((todo) => {
       if (statusFilter === "completed") return todo.isCompleted;
       if (statusFilter === "pending") return !todo.isCompleted;
@@ -106,10 +102,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
     });
 
   const handleToggleComplete = (todo: TodoItem) => {
-    const updatedTodo = {
-      ...todo,
-      isCompleted: !todo.isCompleted,
-    };
+    const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
 
     dispatch(updateTodo(updatedTodo))
       .unwrap()
@@ -139,7 +132,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
   return (
     <div>
-      {/*UI klikabilne, sortiranje */}
       <div
         style={{ display: "flex", fontWeight: "bold", marginBottom: "2rem" }}
       >
@@ -147,10 +139,9 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           style={{ flex: 1, cursor: "pointer" }}
           onClick={() => handleSortClick("title")}
         >
-          Naziv
+          Naziv{" "}
           {sortColumn === "title" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
         </span>
-
         <span
           style={{ flex: 1, cursor: "pointer" }}
           onClick={() => handleSortClick("date")}
@@ -158,7 +149,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           Datum{" "}
           {sortColumn === "date" ? (sortDirection === "asc" ? "▲" : "▼") : ""}
         </span>
-
         <span
           style={{ flex: 1, cursor: "pointer" }}
           onClick={() => handleSortClick("isCompleted")}
@@ -174,13 +164,12 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
       <h2>Todo Lista Zadataka</h2>
 
-      {/*Spinner (Loading indikator)*/}
       {loading && (
         <div style={{ textAlign: "center", margin: "1rem" }}>
           <div className="loader" />
         </div>
       )}
-      {/*Dodavanje AddTodoModal-a za dodavanje zadataka */}
+
       <div style={{ marginBottom: "2rem" }}>
         <AddTodoModal
           onTodoAdded={() => dispatch(fetchTodos(currentPage))}
@@ -188,7 +177,18 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         />
       </div>
 
-      {/*Dugme za ukljucivanje/iskljucivanje arhiviranih zadataka*/}
+      {/* DatePicker samo za prikaz/odabir, ne filtrira više */}
+      <div style={{ marginBottom: "2rem" }}>
+        <label style={{ marginRight: "1rem" }}>Odaberi datum:</label>
+        <DatePicker
+          selected={selectedDate}
+          onChange={(date: Date | null) => setSelectedDate(date)}
+          dateFormat="yyyy-MM-dd"
+          isClearable
+          placeholderText="Izaberi datum"
+        />
+      </div>
+
       <div style={{ marginBottom: "1rem" }}>
         <label>
           <input
@@ -215,13 +215,12 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         </select>
       </div>
 
-      {/*Pretraga po naslovu */}
       <div style={{ marginBottom: "3rem" }}>
-        <label htmlFor="search"> Pretraga po naslovu: </label>
+        <label htmlFor="search">Pretraga po naslovu: </label>
         <input
           id="search"
           type="text"
-          placeholder="Unesite naslov...."
+          placeholder="Unesite naslov..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -229,7 +228,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
 
       <div style={{ marginBottom: "1rem" }}>
         <strong>Status: </strong>
-        Završeni: {items.filter((t) => t.isCompleted).length} / Ukupno:
+        Završeni: {items.filter((t) => t.isCompleted).length} / Ukupno:{" "}
         {items.length}
       </div>
 
@@ -259,7 +258,11 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
               {todo.title}
             </span>
 
-            {/**Vizuelni prikaz priority uz svaki zadatak */}
+            {/* 🆕 Prikaz datuma zadatka */}
+            <span style={{ marginLeft: "2rem", fontStyle: "italic" }}>
+              {todo.date}
+            </span>
+
             <span
               style={{
                 marginLeft: "3rem",
@@ -278,42 +281,37 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
             >
               {todo.priority.toUpperCase()}
             </span>
-
             <button
               onClick={() => setEditingTodo(todo)}
               style={{ marginLeft: "1rem" }}
             >
               Izmeni
             </button>
-
-            {/*Dugme za arhiviranje svakog zadatka (ako nije arhiviran) */}
-            {!todo.isArchived && (
-              <button
-                onClick={() =>
-                  dispatch(archivedTodo(todo.id))
-                    .unwrap()
-                    .then(() => {
-                      toast.success("Zadatak arhiviran.");
-                      if (showArchived) {
-                        dispatch(
-                          fetchArchivedTodos({ page: currentPage, pageSize: 5 })
-                        );
-                      } else {
-                        dispatch(fetchTodos(currentPage));
-                      }
-                    })
-                    .catch(() => toast.error("Greška pri arhiviranju."))
-                }
-                style={{ marginLeft: "1rem", color: "gray" }}
-              >
-                Arhiviraj
-              </button>
-            )}
+            <button
+              onClick={() =>
+                dispatch(archivedTodo(todo.id))
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Zadatak arhiviran.");
+                    if (showArchived) {
+                      dispatch(
+                        fetchArchivedTodos({ page: currentPage, pageSize: 5 })
+                      );
+                    } else {
+                      dispatch(fetchTodos(currentPage));
+                    }
+                  })
+                  .catch(() => toast.error("Greška pri arhiviranju."))
+              }
+              style={{ marginLeft: "1rem", color: "gray" }}
+            >
+              Arhiviraj
+            </button>
           </li>
         ))}
       </ul>
 
-      {/*Paganacije kontrole*/}
+      {/* Pagination */}
       <div style={{ marginTop: "1rem" }}>
         <button
           disabled={currentPage <= 1}
@@ -322,7 +320,7 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
           Prethodna
         </button>
         <span style={{ margin: "0 1rem" }}>
-          Strana {currentPage} od {totalPages}
+          Strana {currentPage} / {totalPages}
         </span>
         <button
           disabled={currentPage >= totalPages}
@@ -332,7 +330,6 @@ const TodoList: React.FC<Props> = ({ selectedDate }) => {
         </button>
       </div>
 
-      {/*Izmena zadataka */}
       {editingTodo && (
         <EditTodoModal
           todo={editingTodo}
