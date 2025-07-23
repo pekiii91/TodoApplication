@@ -55,7 +55,7 @@ const TodoList: React.FC = () => {
     }
   }, [dispatch, currentPage, showArchived]);
 
-  //Lokalna filtracija po datumu
+  //Lokalna filtracija po datumu, prikaza zadataka za danasnji datum
   function isSameDayLocal(date1: Date, date2: Date): boolean {
     return (
       date1.getFullYear() === date2.getFullYear() &&
@@ -63,6 +63,18 @@ const TodoList: React.FC = () => {
       date1.getDate() === date2.getDate()
     );
   }
+
+  const thStyle: React.CSSProperties = {
+    border: "1px solid #ccc",
+    padding: "1rem",
+    backgroundColor: "#f0f0f0",
+    textAlign: "left",
+  };
+
+  const tdStyle: React.CSSProperties = {
+    border: "1px solid #ccc",
+    padding: "1rem",
+  };
 
   const dateFilteredTodos = selectedDate
     ? items.filter((todo) =>
@@ -239,84 +251,94 @@ const TodoList: React.FC = () => {
         {items.length}
       </div>
 
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {filteredTodos.map((todo) => (
-          <li
-            key={todo.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginBottom: "0.5rem",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={todo.isCompleted}
-              onChange={() => handleToggleComplete(todo)}
-              style={{ marginRight: "0.5rem" }}
-            />
-            <span
-              style={{
-                marginLeft: "1rem",
-                textDecoration: todo.isCompleted ? "line-through" : "none",
-                color: todo.isCompleted ? "green" : "blue",
-              }}
-            >
-              {todo.title}
-            </span>
-
-            {/* 🆕 Prikaz datuma zadatka */}
-            <span style={{ marginLeft: "2rem", fontStyle: "italic" }}>
-              {todo.date}
-            </span>
-
-            <span
-              style={{
-                marginLeft: "3rem",
-                padding: "0.2rem 0.5",
-                borderRadius: "4px",
-                fontSize: "1rem",
-                fontWeight: "bold",
-                backgroundColor:
-                  todo.priority === "high"
-                    ? "#ff4d4d"
-                    : todo.priority === "medium"
-                    ? "#ffcc00"
-                    : "#66cc66",
-                color: "#fff",
-              }}
-            >
-              {todo.priority.toUpperCase()}
-            </span>
-            <button
-              onClick={() => setEditingTodo(todo)}
-              style={{ marginLeft: "1rem" }}
-            >
-              Izmeni
-            </button>
-            <button
-              onClick={() =>
-                dispatch(archivedTodo(todo.id))
-                  .unwrap()
-                  .then(() => {
-                    toast.success("Zadatak arhiviran.");
-                    if (showArchived) {
-                      dispatch(
-                        fetchArchivedTodos({ page: currentPage, pageSize: 5 })
-                      );
-                    } else {
-                      dispatch(fetchTodos(currentPage));
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          marginBottom: "1rem",
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={thStyle}>Naziv zadatka</th>
+            <th style={thStyle}>Datum</th>
+            <th style={thStyle}>Status</th>
+            <th style={thStyle}>Prioritet</th>
+            <th style={thStyle}>Akcije</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredTodos.map((todo) => (
+            <tr key={todo.id}>
+              <td style={tdStyle}>
+                <span
+                  style={{
+                    color: todo.isCompleted ? "green" : "blue",
+                    textDecoration: todo.isCompleted ? "line-through" : "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {todo.title}
+                </span>
+              </td>
+              <td style={tdStyle}>{todo.date?.substring(0, 10)}</td>
+              <td style={tdStyle}>
+                <input
+                  type="checkbox"
+                  checked={todo.isCompleted}
+                  onChange={() => handleToggleComplete(todo)}
+                />{" "}
+                {todo.isCompleted ? "✔️" : "⏳"}
+              </td>
+              <td style={tdStyle}>
+                <span
+                  style={{
+                    backgroundColor:
+                      todo.priority === "high"
+                        ? "#ff4d4d"
+                        : todo.priority === "medium"
+                        ? "#ffcc00"
+                        : "#66cc66",
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "4px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {todo.priority.toUpperCase()}
+                </span>
+              </td>
+              <td style={tdStyle}>
+                <button onClick={() => setEditingTodo(todo)}>Izmeni</button>
+                {!todo.isArchived && (
+                  <button
+                    style={{ marginLeft: "0.5rem" }}
+                    onClick={() =>
+                      dispatch(archivedTodo(todo.id))
+                        .unwrap()
+                        .then(() => {
+                          toast.success("Zadatak arhiviran.");
+                          if (showArchived) {
+                            dispatch(
+                              fetchArchivedTodos({
+                                page: currentPage,
+                                pageSize: 5,
+                              })
+                            );
+                          } else {
+                            dispatch(fetchTodos(currentPage));
+                          }
+                        })
+                        .catch(() => toast.error("Greška pri arhiviranju."))
                     }
-                  })
-                  .catch(() => toast.error("Greška pri arhiviranju."))
-              }
-              style={{ marginLeft: "1rem", color: "gray" }}
-            >
-              Arhiviraj
-            </button>
-          </li>
-        ))}
-      </ul>
+                  >
+                    Arhiviraj
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Pagination */}
       <div style={{ marginTop: "1rem" }}>
