@@ -30,6 +30,7 @@ const TodoList: React.FC = () => {
 
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  //filtracija datuma
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "completed" | "pending"
@@ -176,8 +177,6 @@ const TodoList: React.FC = () => {
         </span>
       </div>
 
-      <h2>Todo Lista Zadataka</h2>
-
       {loading && (
         <div style={{ textAlign: "center", margin: "1rem" }}>
           <div className="loader" />
@@ -251,6 +250,9 @@ const TodoList: React.FC = () => {
         {items.length}
       </div>
 
+      <div style={{ marginBottom: "2rem" }}>
+        <h2>Todo Lista Zadataka</h2>
+      </div>
       <table
         style={{
           width: "100%",

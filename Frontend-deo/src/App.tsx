@@ -32,11 +32,25 @@ function App() {
 
   return (
     <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
-      <RandomQuotes />
       <h1>TODO aplikacija</h1>
-      {/*<TodoList selectedDate={new Date(formattedDate)} />*/}
       <TodoList />
       <ToastContainer position="top-right" autoClose={5000} />
+
+      {/* Desna fiksna pozicija za citat */}
+      <div
+        style={{
+          position: "absolute",
+          top: "2rem",
+          right: "2rem",
+          width: "450px",
+          backgroundColor: "rgba(255, 255, 255, 0.85)",
+          borderRadius: "10px",
+          padding: "2rem",
+          boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        }}
+      >
+        <RandomQuotes />
+      </div>
     </div>
   );
 }
