@@ -7,10 +7,10 @@ import "react-toastify/dist/ReactToastify.css";
 
 /*Ova funkcija generise danasnji datum u formatu 
 "YYYY-MM-DD" koji se poklapa s formatom datuma iz baze i koristi se za filtriranje Todo zadataka. */
-const getTodayDate = (): string => {
+/*const getTodayDate = (): string => {
   const today = new Date();
   return today.toISOString().substring(0, 10); // "YYYY-MM-DD"
-};
+};*/
 
 function App() {
   //izvlacimo datum iz URL
@@ -30,29 +30,12 @@ function App() {
   const nextDay = new Date(selectedDate);
   nextDay.setDate(selectedDate.getDate() + 1);
 
-  const formatToIsoDate = (dateStr: string): string => {
-    if (dateStr.includes("-")) {
-      const parts = dateStr.split("-");
-      if (parts[0].length === 2) {
-        // Ako je dd-mm-yyyy
-        const [day, month, year] = parts;
-        return `${year}-${month}-${day}`;
-      } else {
-        // Ako je već yyyy-mm-dd
-        return dateStr;
-      }
-    }
-    return new Date().toISOString().substring(0, 10);
-  };
-
-  //Ako nema datuma u URL, koristi danasnji
-  const formattedDate = dateParam ? formatToIsoDate(dateParam) : getTodayDate();
-
   return (
     <div style={{ padding: "2rem", maxWidth: "700px", margin: "0 auto" }}>
       <RandomQuotes />
       <h1>TODO aplikacija</h1>
-      <TodoList selectedDate={new Date(formattedDate)} />
+      {/*<TodoList selectedDate={new Date(formattedDate)} />*/}
+      <TodoList />
       <ToastContainer position="top-right" autoClose={5000} />
     </div>
   );

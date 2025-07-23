@@ -15,10 +15,7 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-interface Props {
-  selectedDate: Date | null;
-}
-const TodoList: React.FC<Props> = () => {
+const TodoList: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
@@ -56,22 +53,20 @@ const TodoList: React.FC<Props> = () => {
     } else {
       dispatch(setCurrentPage(currentPage));
     }
-  }, [dispatch, currentPage, showArchived, selectedDate]);
+  }, [dispatch, currentPage, showArchived]);
 
   //Lokalna filtracija po datumu
-  function isSameDayUTC(date1: Date, date2: Date): boolean {
+  function isSameDayLocal(date1: Date, date2: Date): boolean {
     return (
-      date1.getUTCFullYear() === date2.getUTCFullYear() &&
-      date1.getUTCMonth() === date2.getUTCMonth() &&
-      date1.getUTCDate() === date2.getUTCDate()
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
     );
   }
 
   const dateFilteredTodos = selectedDate
     ? items.filter((todo) =>
-        todo.date
-          ? isSameDayUTC(new Date(todo.date + "T00:00:00"), selectedDate)
-          : false
+        todo.date ? isSameDayLocal(new Date(todo.date), selectedDate) : false
       )
     : items;
 
@@ -84,6 +79,13 @@ const TodoList: React.FC<Props> = () => {
     .filter((todo) =>
       todo.title.toLowerCase().includes(searchTerm.toLowerCase())
     )
+    //Lokalna filtracija po datumu
+    .filter((todo) => {
+      if (!selectedDate) return true;
+      const todoDate = new Date(todo.date).toISOString().substring(0, 10);
+      const selected = selectedDate.toISOString().substring(0, 10);
+      return todoDate === selected;
+    })
     .filter((todo) => (showArchived ? todo.isArchived : !todo.isArchived))
     .sort((a, b) => {
       let result = 0;
@@ -188,6 +190,11 @@ const TodoList: React.FC<Props> = () => {
           placeholderText="Izaberi datum"
         />
       </div>
+      {selectedDate && (
+        <div style={{ fontStyle: "italic", marginTop: "0.5rem" }}>
+          Prikaz zadataka za: {selectedDate.toLocaleDateString("sr-RS")}
+        </div>
+      )}
 
       <div style={{ marginBottom: "1rem" }}>
         <label>
