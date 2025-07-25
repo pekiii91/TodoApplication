@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using System.Data.SqlTypes;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using TodoApplication.Models;
 { }
 
@@ -20,6 +22,27 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+
+//Autentifikacija JWT i autorizacija
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
+        };
+    });
+
+
+builder.Services.AddAuthorization();
 
 
 // Add services to the container.
@@ -44,7 +67,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

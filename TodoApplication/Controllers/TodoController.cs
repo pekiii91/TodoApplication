@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TodoApplication.Models;
 
 
 namespace TodoApplication.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")] ///određuje putanju api/todo
     public class TodoController : Controller
@@ -20,14 +22,22 @@ namespace TodoApplication.Controllers
         public IActionResult GetTodos([FromQuery] int page = 1, [FromQuery] int pageSize = 5,
             [FromQuery] bool showArchived = false)
         {
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim.Value);
+
+
             if (page <= 0 || pageSize <= 0)
                 return BadRequest("Neispravni parametri.");
-
+            
             var skip = (page - 1) * pageSize;
 
             //Filtriraj po arhiviranju
             var query = _context.Todos.AsQueryable();
 
+            //filtriraj po korisniku
             //Ako ne tražimo arhivirane, filtriraj samo aktivne
             if (!showArchived)
                 query = query.Where(t => !t.IsArchived);
@@ -53,6 +63,10 @@ namespace TodoApplication.Controllers
         [HttpPost]
         public IActionResult AddTodo([FromBody] Todo todo)
         {
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+                return Unauthorized();
+
             if (!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
