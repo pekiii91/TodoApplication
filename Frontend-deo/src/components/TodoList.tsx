@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import AddTodoModal from "./AddTodoModal";
 import EditTodoModal from "./EditTodoModal";
@@ -18,6 +19,16 @@ import "react-datepicker/dist/react-datepicker.css";
 const TodoList: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
+
+  //proverava da li je korisnik ulogvan
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+    }
+  }, [navigate]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const { items, currentPage, totalPages, loading } = useSelector(
@@ -65,6 +76,7 @@ const TodoList: React.FC = () => {
     );
   }
 
+  //stilovi za tabele
   const thStyle: React.CSSProperties = {
     border: "1px solid #ccc",
     padding: "1rem",
@@ -77,6 +89,7 @@ const TodoList: React.FC = () => {
     padding: "1rem",
   };
 
+  //Filtracija za datum
   const dateFilteredTodos = selectedDate
     ? items.filter((todo) =>
         todo.date ? isSameDayLocal(new Date(todo.date), selectedDate) : false
