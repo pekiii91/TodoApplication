@@ -7,7 +7,7 @@ import { RootState, AppDispatch } from "../store/store";
 import {
   fetchTodos,
   updateTodo,
-  fetchArchivedTodos,
+  //fetchArchivedTodos,
   archivedTodo,
   setCurrentPage,
 } from "../store/todoSlice";

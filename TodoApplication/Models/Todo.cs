@@ -15,9 +15,10 @@ namespace TodoApplication.Models
         public string Priority { get; set; } // Low, Medium, High
         public bool IsArchived { get; set; } = false;
 
-
-        [ForeignKey("User")]
+       
+        [ForeignKey("UserId")]
         public int UserId { get; set; }
+        
         public User User { get; set; }
     }
 }

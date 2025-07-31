@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using TodoApplication.Models;
+using TodoApplication.Models.DTO;
 
 
 namespace TodoApplication.Controllers
@@ -35,7 +37,8 @@ namespace TodoApplication.Controllers
             var skip = (page - 1) * pageSize;
 
             //Filtriraj po arhiviranju
-            var query = _context.Todos.AsQueryable();
+            var query = _context.Todos.Where(t => t.UserId == userId);
+           // var query = _context.Todos.AsQueryable();
 
             //filtriraj po korisniku
             //Ako ne tražimo arhivirane, filtriraj samo aktivne
@@ -61,7 +64,7 @@ namespace TodoApplication.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddTodo([FromBody] Todo todo)
+        public IActionResult AddTodo([FromBody] TodoDTO todoDTO)
         {
             var userIdClaim = User.FindFirst("UserId");
             if (userIdClaim == null)
@@ -71,21 +74,34 @@ namespace TodoApplication.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (string.IsNullOrWhiteSpace(todo.Priority))
-                todo.Priority = "low";
+            int userId = int.Parse(userIdClaim.Value);
 
-            todo.IsArchived = false;  
+            var todo = new Todo
+            {
+                Title = todoDTO.Title,
+                Date = todoDTO.Date,
+                Priority = string.IsNullOrWhiteSpace(todoDTO.Priority) ? "low" : todoDTO.Priority,
+                IsCompleted = todoDTO.IsCompleted,
+                IsArchived = false,
+                //UserId dodeljujem novom Todo objektu
+                UserId = userId
+            };
 
             _context.Todos.Add(todo);
             _context.SaveChanges();
-
-            return Ok(todo); // Vraćam kreirani todo kao JSON response
+            return Ok(todo);
+            
         }
 
         [HttpPut("{id}/archive")]
         public IActionResult ArchiveTodo(int id)
         {
-            var todo = _context.Todos.Find(id);
+            var userIdClaim = User.FindFirst("UserId");
+            if(userIdClaim == null)
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim.Value);
+            var todo = _context.Todos.FirstOrDefault(t=> t.Id == id && t.UserId == userId);
             if (todo == null)
                 return NotFound();
 
@@ -96,20 +112,24 @@ namespace TodoApplication.Controllers
         }
 
         [HttpPut("{id}")] 
-        public IActionResult UpdateTodo(int id, [FromBody] Todo updatedTodo)
+        public IActionResult UpdateTodo(int id, [FromBody] TodoDTO updatedTodoDTO)
         {
-            if (id != updatedTodo.Id)
-                return BadRequest("ID se ne poklapa.");
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+                return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
 
-            var existingTodo = _context.Todos.Find(id);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var existingTodo = _context.Todos.FirstOrDefault(t => t.Id == id && t.UserId == userId);
             if (existingTodo == null)
                 return NotFound();
 
-            existingTodo.Id = updatedTodo.Id;
-            existingTodo.Title = updatedTodo.Title;
-            existingTodo.IsCompleted = updatedTodo.IsCompleted;
-            existingTodo.Date = updatedTodo.Date;
-            existingTodo.Priority = string.IsNullOrWhiteSpace(updatedTodo.Priority) ? "low" : updatedTodo.Priority;
+            existingTodo.Title = updatedTodoDTO.Title;
+            existingTodo.IsCompleted = updatedTodoDTO.IsCompleted;
+            existingTodo.Date = updatedTodoDTO.Date;
+            existingTodo.Priority = string.IsNullOrWhiteSpace(updatedTodoDTO.Priority) ? "low" : updatedTodoDTO.Priority;
 
             _context.SaveChanges();
 
@@ -119,17 +139,21 @@ namespace TodoApplication.Controllers
         [HttpDelete("{id}")]
         public IActionResult ArchivedTodo(int id) 
         {
-            var todo = _context.Todos.Find(id);
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+                return Unauthorized();
+            int userId = int.Parse(userIdClaim.Value);
+
+
+            var todo = _context.Todos.FirstOrDefault(t => t.Id == id && t.UserId == userId);
             if(todo == null)
                 return NotFound();
 
             // Ne brisem, samo arhiviram
             todo.IsArchived = true;
-            _context.Todos.Remove(todo);
+            //_context.Todos.Remove(todo);
             _context.SaveChanges();
             return NoContent();
         }
-
-
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -10,7 +9,6 @@ using TodoApplication.Models.DTO;
 
 namespace TodoApplication.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : Controller
@@ -26,6 +24,7 @@ namespace TodoApplication.Controllers
 
 
         [HttpPost("register")]
+        [AllowAnonymous]
         public IActionResult Register([FromBody] Register model)
         {
             if (_context.Users.Any(u => u.Username == model.Username))
@@ -48,6 +47,7 @@ namespace TodoApplication.Controllers
 
 
         [HttpPost("login")]
+        [AllowAnonymous]
         public IActionResult Login([FromBody] Login model)
         {
             var user = _context.Users.FirstOrDefault(u => u.Username == model.Username);
@@ -56,6 +56,7 @@ namespace TodoApplication.Controllers
 
             var claims = new[]
             {
+                new Claim("UserId", user.Id.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username)
             };

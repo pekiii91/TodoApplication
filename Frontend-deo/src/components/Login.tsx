@@ -13,7 +13,7 @@ const Login: React.FC = () => {
 
     try {
       const response = await api.post(
-        "https://localhost:44303/api/auth/login",
+        "https://localhost:44303/api/user/login",
         {
           username,
           password,
