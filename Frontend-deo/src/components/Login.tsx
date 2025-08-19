@@ -20,9 +20,10 @@ const Login: React.FC = () => {
         }
       );
       const token = response.data.token;
-
       localStorage.setItem("token", token);
+      console.log("Token saved:", localStorage.getItem("token"));
       navigate("/");
+
       // onLogin(); // obavesti da je korisnik ulogovan
     } catch {
       setError("Pogresan username ili lozinka.");
@@ -63,7 +64,7 @@ const Login: React.FC = () => {
         </div>
 
         <button type="submit" style={{ width: "100%", padding: "8px" }}>
-          Prijavi se
+          Prijavite se
         </button>
       </form>
     </div>

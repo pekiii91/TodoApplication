@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TodoApplication.Models;
 using TodoApplication.Models.DTO;
@@ -24,6 +23,8 @@ namespace TodoApplication.Controllers
         public IActionResult GetTodos([FromQuery] int page = 1, [FromQuery] int pageSize = 5,
             [FromQuery] bool showArchived = false)
         {
+            //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier); // ili "nameid"
+
             var userIdClaim = User.FindFirst("UserId");
             if (userIdClaim == null)
                 return Unauthorized();
@@ -62,11 +63,12 @@ namespace TodoApplication.Controllers
             };
             return Ok(response);
         }
-
+        [Authorize]
         [HttpPost]
         public IActionResult AddTodo([FromBody] TodoDTO todoDTO)
         {
             var userIdClaim = User.FindFirst("UserId");
+
             if (userIdClaim == null)
                 return Unauthorized();
 
@@ -96,6 +98,7 @@ namespace TodoApplication.Controllers
         [HttpPut("{id}/archive")]
         public IActionResult ArchiveTodo(int id)
         {
+
             var userIdClaim = User.FindFirst("UserId");
             if(userIdClaim == null)
                 return Unauthorized();
@@ -139,6 +142,8 @@ namespace TodoApplication.Controllers
         [HttpDelete("{id}")]
         public IActionResult ArchivedTodo(int id) 
         {
+            //var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier); // ili "nameid"
+
             var userIdClaim = User.FindFirst("UserId");
             if (userIdClaim == null)
                 return Unauthorized();

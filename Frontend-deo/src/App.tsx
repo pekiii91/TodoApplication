@@ -37,7 +37,7 @@ function App() {
           position: "absolute",
           top: "2rem",
           right: "2rem",
-          width: "450px",
+          width: "400px",
           backgroundColor: "rgba(255, 255, 255, 0.85)",
           borderRadius: "10px",
           padding: "2rem",
