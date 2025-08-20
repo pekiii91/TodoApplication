@@ -199,11 +199,11 @@ const TodoList: React.FC = () => {
   const getPriorityText = (priority: string) => {
     switch (priority) {
       case "high":
-        return "Visok";
+        return "High";
       case "medium":
-        return "Srednji";
+        return "Medium";
       case "low":
-        return "Nizak";
+        return "Low";
       default:
         return priority;
     }
@@ -306,7 +306,7 @@ const TodoList: React.FC = () => {
             </label>
           </div>
 
-          {/* Add Todo */}
+          {/* Add Model Todo */}
           <div className="mb-6">
             <AddTodoModal
               onTodoAdded={() => {}}
@@ -314,9 +314,9 @@ const TodoList: React.FC = () => {
             />
           </div>
 
-          {/* Stats */}
+          {/* Status */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-blue-600">
                   {items.length}
@@ -344,7 +344,7 @@ const TodoList: React.FC = () => {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Tabela */}
           <div className="overflow-x-auto">
             <table className="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
               <thead className="bg-gray-50">
@@ -402,11 +402,6 @@ const TodoList: React.FC = () => {
                           >
                             {todo.title}
                           </div>
-                          {/*{todo.description && (
-                            <div className="text-sm text-gray-500 mt-1">
-                              {todo.description}
-                            </div>
-                          )}*/}
                         </div>
                       </div>
                     </td>
@@ -484,7 +479,7 @@ const TodoList: React.FC = () => {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Paganacija */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-gray-700">

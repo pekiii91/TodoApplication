@@ -62,13 +62,11 @@
   }
 }
 
-/*body {
-  background-image: url("/Todo.jpg");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
-}*/
+.random-quotes {
+  position: fixed;
+  top: 20pz;
+  right: 10px;
+  max-width: 250px;
+  text-align: center;
+  font-style: italic;
+}
