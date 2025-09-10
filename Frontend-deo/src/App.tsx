@@ -3,7 +3,6 @@ import Login from "./components/Login";
 import "./App.css";
 import RandomQuotes from "./components/RandomQuotes";
 import { store } from "./store/store";
-//import { useParams } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Routes, Route, Navigate } from "react-router-dom";
@@ -35,7 +34,7 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/"></Navigate>} />
+          <Route path="/" element={<Navigate to="/"></Navigate>} />
         </Routes>
         <ToastContainer
           position="top-right"

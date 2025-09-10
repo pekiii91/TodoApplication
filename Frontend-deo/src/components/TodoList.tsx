@@ -27,6 +27,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -49,6 +50,7 @@ const TodoList: React.FC = () => {
     (state: RootState) => state.todos
   );
 
+  //Fetch podataka
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -68,8 +70,9 @@ const TodoList: React.FC = () => {
       toast.error(error);
       // dispatch(clearError());
     }
-  }, [error, dispatch]);
+  }, [error]);
 
+  //Sortiranje
   const handleSortClick = (column: "title" | "date" | "isCompleted") => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -87,6 +90,7 @@ const TodoList: React.FC = () => {
     );
   };
 
+  //Filtriranje i sortiranje
   const filteredTodos = items
     .filter((todo) => {
       if (statusFilter === "completed") return todo.isCompleted;
@@ -117,6 +121,7 @@ const TodoList: React.FC = () => {
       return sortDirection === "asc" ? result : -result;
     });
 
+  //Toggle complete
   const handleToggleComplete = async (todo: TodoItem) => {
     const updatedTodo = { ...todo, isCompleted: !todo.isCompleted };
 
@@ -145,6 +150,7 @@ const TodoList: React.FC = () => {
     }
   };
 
+  //Arhiviranje
   const handleArchive = async (todoId: number) => {
     try {
       await dispatch(archiveTodo(todoId)).unwrap();
@@ -161,6 +167,7 @@ const TodoList: React.FC = () => {
     }
   };
 
+  //Brisanje
   const handleDelete = async (todoId: number) => {
     if (
       window.confirm("Da li ste sigurni da želite da obrišete ovaj zadatak?")
@@ -175,6 +182,7 @@ const TodoList: React.FC = () => {
     }
   };
 
+  //Paganacija
   const handlePageChange = (newPage: number) => {
     if (showArchived) {
       dispatch(fetchArchivedTodos({ page: newPage, pageSize: 5 }));
@@ -213,186 +221,225 @@ const TodoList: React.FC = () => {
     if (sortColumn !== column)
       return <ChevronUp className="w-4 h-4 opacity-30" />;
     return sortDirection === "asc" ? (
-      <ChevronUp className="w-4 h-4 text-blue-600" />
+      <ChevronUp className="w-4 h-4 text-blue-400" />
     ) : (
-      <ChevronDown className="w-4 h-4 text-blue-600" />
+      <ChevronDown className="w-4 h-4 text-blue-400" />
     );
   };
 
+  type StatCardProps = {
+    label: string;
+    value: number;
+    color: string;
+  };
+
+  const StatCard: React.FC<StatCardProps> = ({ label, value }) => {
+    return (
+      <div className="bg-white rounded-2xl shadow p-4 flex flex-col items-center justify-center">
+        <span className="text-sm text-gray-500">{label}</span>
+        <span className="text-xl font-bold">{value}</span>
+      </div>
+    );
+  };
+
+  //Loader
   if (loading && items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Učitavanje zadataka...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Todo Lista Zadataka
+    <div className="max-h-screen bg-gradient-to-br from-blue-100 to-indigo-100 flex justify-center items-start py-10">
+      <div className="bg-red-500 shadow-xl rounded-2xl w-full max-w-7xl mx-auto p-8">
+        {/* Header */}
+        <div className="mx-auto px-8 py-8 max-w-screen-xl">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Lista Zadataka
           </h1>
-
-          {/* Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Pretraži zadatke..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(
-                    e.target.value as "all" | "completed" | "pending"
-                  )
-                }
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
-              >
-                <option value="all">Svi zadaci</option>
-                <option value="pending">Nezavršeni</option>
-                <option value="completed">Završeni</option>
-              </select>
-            </div>
-
-            {/* Date Picker */}
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
-              <DatePicker
-                selected={selectedDate}
-                onChange={(date: Date | null) => setSelectedDate(date)}
-                dateFormat="dd.MM.yyyy"
-                isClearable
-                placeholderText="Filtriraj po datumu"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Archive Toggle */}
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showArchived}
-                onChange={(e) => setShowArchived(e.target.checked)}
-                className="sr-only"
-              />
-              <div
-                className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
-                  showArchived ? "bg-blue-600" : "bg-gray-300"
-                }`}
-              >
+          <p className="text-gray-600">
+            Organizujte i pratite svoje dnevne zadatke
+          </p>
+          <AddTodoModal
+            onTodoAdded={() => {}}
+            onClose={() => dispatch(fetchTodos(currentPage))}
+          />
+        </div>
+        {/* Main Content Card */}
+        <div className="bg-white/70 rounded-xl shadow-lg border-2 border-indigo-300 w-[1000px] min-h-[400px] mx-auto p-10">
+          {/* Controls Section */}
+          <div className="bg-gray-100 border-b border-gray-300 p-6">
+            {/* Action Bar */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  id="checkbox"
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                  className="sr-only"
+                />
                 <div
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${
-                    showArchived ? "translate-x-6" : "translate-x-0"
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    showArchived ? "bg-blue-500" : "bg-gray-300"
                   }`}
-                ></div>
-              </div>
-              <span className="ml-3 text-sm font-medium text-gray-700 flex items-center">
-                <Archive className="w-4 h-4 mr-1" />
-                Arhivirani
-              </span>
-            </label>
-          </div>
+                >
+                  <div
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-200 ${
+                      showArchived ? "translate-x-6" : "translate-x-0"
+                    }`}
+                  ></div>
+                </div>
+                <span className="ml-3 text-sm font-medium text-gray-700 flex items-center">
+                  <Archive className="w-5 h-5 mr-2" />
+                  Arhivirani
+                </span>
+              </label>
+            </div>
 
-          {/* Add Model Todo */}
-          <div className="mb-6">
-            <AddTodoModal
-              onTodoAdded={() => {}}
-              onClose={() => dispatch(fetchTodos(currentPage))}
-            />
-          </div>
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 items-center">
+              {/* Search */}
+              <div className="flex items-center gap-2 w-full max-w-sm">
+                <Search className="text-gray-400 w-4 h-4 pointer-events-none z-10" />
+                <input
+                  id="text"
+                  type="text"
+                  placeholder="Pretraži zadatke..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm min-w-[200px] pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+                />
+              </div>
 
-          {/* Status */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {items.length}
-                </div>
-                <div className="text-sm text-gray-600">Ukupno</div>
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 w-full max-w-sm">
+                <Filter className="text-gray-600 w-5 h-5" />
+                <select
+                  id="statusFilter"
+                  name="statusFilter"
+                  value={statusFilter}
+                  onChange={(e) =>
+                    setStatusFilter(
+                      e.target.value as "all" | "completed" | "pending"
+                    )
+                  }
+                  className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none transition-colors"
+                >
+                  <option value="all">Svi zadaci</option>
+                  <option value="pending">Nezavršeni</option>
+                  <option value="completed">Završeni</option>
+                </select>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {items.filter((t) => t.isCompleted).length}
-                </div>
-                <div className="text-sm text-gray-600">Završeni</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {items.filter((t) => !t.isCompleted).length}
-                </div>
-                <div className="text-sm text-gray-600">Nezavršeni</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-purple-600">
-                  {items.filter((t) => t.isArchived).length}
-                </div>
-                <div className="text-sm text-gray-600">Arhivirani</div>
+
+              {/* Date Picker */}
+              <div className="relative flex items-center gap-2 w-full max-w-sm ">
+                <Calendar className="text-gray-400 w-5 h-5" />
+                <DatePicker
+                  id="taskDate"
+                  name="taskDate"
+                  selected={selectedDate}
+                  onChange={(date: Date | null) => setSelectedDate(date)}
+                  dateFormat="dd.MM.yyyy"
+                  isClearable
+                  placeholderText="Filtriraj po datumu"
+                  className="flex-1 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors"
+                />
               </div>
             </div>
           </div>
-
-          {/* Tabela */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("title")}
-                  >
-                    <div className="flex items-center gap-2">
-                      Naslov
-                      <SortIcon column="title" />
-                    </div>
-                  </th>
-                  <th
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("date")}
-                  >
-                    <div className="flex items-center gap-2">
-                      Datum
-                      <SortIcon column="date" />
-                    </div>
-                  </th>
-                  <th
-                    className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSortClick("isCompleted")}
-                  >
-                    <div className="flex items-center gap-2">
-                      Status
-                      <SortIcon column="isCompleted" />
-                    </div>
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Prioritet
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Akcije
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTodos.map((todo) => (
-                  <tr
-                    key={todo.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div>
+          {/* Stats */}
+          <section className="bg-white border-b border-gray-200 p-6">
+            <div className="flex items-center mb-4">
+              <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
+              <h3 className="text-lg font-semibold text-gray-900">
+                Pregled zadataka
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard value={items.length} label="Ukupno" color="slate" />
+              <StatCard
+                value={items.filter((t) => t.isCompleted).length}
+                label="Završeni"
+                color="green"
+              />
+              <StatCard
+                value={items.filter((t) => !t.isCompleted).length}
+                label="Nezavršeni"
+                color="amber"
+              />
+              <StatCard
+                value={items.filter((t) => t.isArchived).length}
+                label="Arhivirani"
+                color="purple"
+              />
+            </div>
+          </section>
+          {/* Table Section */}
+          <div className="p-6">
+            {filteredTodos.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-gray-400 text-xl mb-2">
+                  Nema zadataka za prikaz
+                </div>
+                <p className="text-gray-500">
+                  Dodajte novi zadatak ili promenite filter kriterijume
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th
+                        className="text-left py-4 px-2 text-sm font-semibold text-gray-600 cursor-pointer hover:text-gray-900 transition-colors"
+                        onClick={() => handleSortClick("title")}
+                      >
+                        <div className="flex items-center gap-2">
+                          Naslov: *
+                          <SortIcon column="title" />
+                        </div>
+                      </th>
+                      <th
+                        className="text-left py-4 px-2 text-sm font-semibold text-gray-600 cursor-pointer hover:text-gray-900 transition-colors"
+                        onClick={() => handleSortClick("date")}
+                      >
+                        <div className="flex items-center gap-2">
+                          Datum prijave:
+                          <SortIcon column="date" />
+                        </div>
+                      </th>
+                      <th
+                        className="text-left py-4 px-2 text-sm font-semibold text-gray-600 cursor-pointer hover:text-gray-900 transition-colors"
+                        onClick={() => handleSortClick("isCompleted")}
+                      >
+                        <div className="flex items-center gap-2">
+                          Status
+                          <SortIcon column="isCompleted" />
+                        </div>
+                      </th>
+                      <th className="text-left py-4 px-2 text-sm font-semibold text-gray-600">
+                        Prioritet
+                      </th>
+                      <th className="text-right py-4 px-2 text-sm font-semibold text-gray-600">
+                        Akcije
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredTodos.map((todo, index) => (
+                      <tr
+                        key={todo.id}
+                        className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                          index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                        }`}
+                      >
+                        <td className="py-4 px-2">
                           <div
                             className={`text-sm font-medium ${
                               todo.isCompleted
@@ -402,108 +449,95 @@ const TodoList: React.FC = () => {
                           >
                             {todo.title}
                           </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(todo.date).toLocaleDateString("sr-RS")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleComplete(todo)}
-                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          todo.isCompleted
-                            ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                        }`}
-                      >
-                        {todo.isCompleted ? (
-                          <>
-                            <CheckCircle className="w-4 h-4" />
-                            Završeno
-                          </>
-                        ) : (
-                          <>
-                            <Clock className="w-4 h-4" />U toku
-                          </>
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getPriorityColor(
-                          todo.priority
-                        )}`}
-                      >
-                        {getPriorityText(todo.priority)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setEditingTodo(todo)}
-                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50 transition-colors"
-                          title="Izmeni"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        {!todo.isArchived && (
+                        </td>
+                        <td className="py-4 px-2 text-sm text-gray-600">
+                          {new Date(todo.date).toLocaleDateString("sr-RS")}
+                        </td>
+                        <td className="py-4 px-2">
                           <button
-                            onClick={() => handleArchive(todo.id)}
-                            className="text-purple-600 hover:text-purple-900 p-1 rounded hover:bg-purple-50 transition-colors"
-                            title="Arhiviraj"
+                            onClick={() => handleToggleComplete(todo)}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 ${
+                              todo.isCompleted
+                                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            }`}
                           >
-                            <Archive className="w-4 h-4" />
+                            {todo.isCompleted ? (
+                              <>
+                                <CheckCircle className="w-3 h-3" />
+                                Završeno
+                              </>
+                            ) : (
+                              <>
+                                <Clock className="w-3 h-3" />U toku
+                              </>
+                            )}
                           </button>
-                        )}
-                        <button
-                          onClick={() => handleDelete(todo.id)}
-                          className="text-red-600 hover:text-red-900 p-1 rounded hover:bg-red-50 transition-colors"
-                          title="Obriši"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="py-4 px-2">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                              todo.priority
+                            )}`}
+                          >
+                            {getPriorityText(todo.priority)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-2">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingTodo(todo)}
+                              className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition-all hover:scale-110"
+                              title="Izmeni"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            {!todo.isArchived && (
+                              <button
+                                onClick={() => handleArchive(todo.id)}
+                                className="text-purple-600 hover:text-purple-800 p-2 rounded-lg hover:bg-purple-50 transition-all hover:scale-110"
+                                title="Arhiviraj"
+                              >
+                                <Archive className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDelete(todo.id)}
+                              className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-all hover:scale-110"
+                              title="Obriši"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-
-          {filteredTodos.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-gray-500 text-lg">
-                Nema zadataka za prikaz
-              </div>
-            </div>
-          )}
-
-          {/* Paganacija */}
+          {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-700">
+            <footer className="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+              <span className="text-sm text-gray-600">
                 Strana {currentPage} od {totalPages}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
+              </span>
+              <div className="flex items-center gap-3">
+                <PageButton
                   disabled={currentPage <= 1}
                   onClick={() => handlePageChange(currentPage - 1)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Prethodna
-                </button>
-                <button
+                  icon={<ChevronLeft className="w-4 h-4" />}
+                  text="Prethodna"
+                />
+                <PageButton
                   disabled={currentPage >= totalPages}
                   onClick={() => handlePageChange(currentPage + 1)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Sledeća
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                  text="Sledeća"
+                  icon={<ChevronRight className="w-4 h-4" />}
+                />
               </div>
-            </div>
+            </footer>
           )}
         </div>
       </div>
@@ -526,5 +560,26 @@ const TodoList: React.FC = () => {
     </div>
   );
 };
+
+const PageButton = ({
+  disabled,
+  onClick,
+  icon,
+  text,
+}: {
+  disabled: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  text: string;
+}) => (
+  <button
+    disabled={disabled}
+    onClick={onClick}
+    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors shadow-sm"
+  >
+    {icon}
+    {text}
+  </button>
+);
 
 export default TodoList;
