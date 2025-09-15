@@ -44,6 +44,8 @@ const TodoList: React.FC = () => {
   >("all");
   const [editingTodo, setEditingTodo] = useState<TodoItem | null>(null);
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const { items, currentPage, totalPages, loading, error } = useSelector(
@@ -265,13 +267,9 @@ const TodoList: React.FC = () => {
           <p className="text-gray-600">
             Organizujte i pratite svoje dnevne zadatke
           </p>
-          <AddTodoModal
-            onTodoAdded={() => {}}
-            onClose={() => dispatch(fetchTodos(currentPage))}
-          />
         </div>
         {/* Main Content Card */}
-        <div className="bg-white/70 rounded-xl shadow-lg border-2 border-indigo-300 w-[1000px] min-h-[400px] mx-auto p-10">
+        <div className="bg-white rounded-xl shadow-lg border-2 border-indigo-300 w-[1000px] min-h-[400px] mx-auto p-12">
           {/* Controls Section */}
           <div className="bg-gray-100 border-b border-gray-300 p-6">
             {/* Action Bar */}
@@ -300,6 +298,21 @@ const TodoList: React.FC = () => {
                   Arhivirani
                 </span>
               </label>
+              {/* Dugme za otvaranje modala */}
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="group relative inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Dodaj novi zadatak
+              </button>
+
+              {/* Modal */}
+              {isAddModalOpen && (
+                <AddTodoModal
+                  onTodoAdded={() => dispatch(fetchTodos(currentPage))}
+                  onClose={() => setIsAddModalOpen(false)}
+                />
+              )}
             </div>
 
             {/* Filters */}

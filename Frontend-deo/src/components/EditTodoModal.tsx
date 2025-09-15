@@ -54,72 +54,85 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
   };
 
   return (
-    <div
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="rounded-2xl shadow-2xl w-[280px] min-h-[300px] animate-in fade-in-0 zoom-in-95 duration-200 border border-gray-200"
+        style={{ background: "#f9f9f9" }}
+      >
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800 center">
+            Izmeni zadatak
+          </h2>
+        </div>
+
+        {/*</div><div
       style={{
-        marginBottom: "2rem",
-        border: "1px solid #ccc",
-        padding: "1rem",
+        marginBottom: "5rem",
+        border: "3px solid #ccc",
+        padding: "2rem",
         background: "#f9f9f9",
       }}
     >
-      <h4>Izmeni zadatak</h4>
+      <h4>Izmeni zadatak</h4>*/}
 
-      <input
-        type="text"
-        placeholder="Naslov zadatka"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{
-          marginBottom: "1rem",
-          width: "30%",
-          padding: "0.5rem",
-          border:
-            submitted && !title.trim() ? "1px solid red" : "1px solid #ccc",
-        }}
-      />
-      {/**validacija u boji */}
-      {submitted && !title.trim() && (
-        <div
-          style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}
-        >
-          Naslov je obavezan!
-        </div>
-      )}
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label>
-          <input
-            type="checkbox"
-            checked={isCompleted}
-            onChange={(e) => setIsCompleted(e.target.checked)}
-          />
-          Završen
-        </label>
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label>Prioritet: </label>
-        <select
-          value={priority}
-          onChange={(e) =>
-            setPriority(e.target.value as "low" | "medium" | "high")
-          }
+        <input
+          type="text"
+          placeholder="Naslov zadatka"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           style={{
-            backgroundColor: priorityBgColor[priority],
+            marginBottom: "0.5rem",
+            width: "93%",
             padding: "0.5rem",
-            width: "30%",
+            border:
+              submitted && !title.trim() ? "1px solid red" : "2px solid #ccc",
           }}
-        >
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
+        />
+        {/**validacija u boji */}
+        {submitted && !title.trim() && (
+          <div
+            style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}
+          >
+            Naslov je obavezan!
+          </div>
+        )}
 
-      <button onClick={handleUpdate}>Sačuvaj</button>
-      <button onClick={onClose} style={{ marginLeft: "0.5rem" }}>
-        Otkaži
-      </button>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>
+            <input
+              type="checkbox"
+              checked={isCompleted}
+              onChange={(e) => setIsCompleted(e.target.checked)}
+            />
+            Završen
+          </label>
+        </div>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Prioritet: </label>
+          <select
+            value={priority}
+            onChange={(e) =>
+              setPriority(e.target.value as "low" | "medium" | "high")
+            }
+            style={{
+              backgroundColor: priorityBgColor[priority],
+              padding: "0.5rem",
+              width: "30%",
+            }}
+          >
+            <option value="low">Nizak</option>
+            <option value="medium">Srednji</option>
+            <option value="high">Visok</option>
+          </select>
+        </div>
+
+        <button onClick={handleUpdate}>Sačuvaj</button>
+        <button onClick={onClose} style={{ marginLeft: "0.5rem" }}>
+          Otkaži
+        </button>
+      </div>
     </div>
   );
 };
