@@ -16,17 +16,25 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
   const [priority, setPriority] = useState<"low" | "medium" | "high">(
     todo.priority ?? "low"
   );
+  const [dueDate, setDueDate] = useState(
+    todo.date ? todo.date.split("T")[0] : new Date().toISOString().split("T")[0]
+  );
 
   const [submitted, setSubmitted] = useState(false);
 
   const dispatch = useDispatch<AppDispatch>();
+  const today = new Date().toISOString().split("T")[0]; // današnji datum (YYYY-MM-DD)
 
   const handleUpdate = () => {
     setSubmitted(true); //aktivira validaciju
 
-    if (!title.trim())
+    //Validacija naslova
+    if (!title.trim() || title.trim().length < 3)
       //zaustavlja ako je naslov prazan
       return;
+
+    //Validacija datuma
+    if (dueDate && dueDate < today) return;
 
     const updatedTodo: TodoItem = {
       ...todo,
@@ -71,13 +79,11 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
           placeholder="Naslov zadatka"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          style={{
-            marginBottom: "0.5rem",
-            width: "93%",
-            padding: "0.5rem",
-            border:
-              submitted && !title.trim() ? "1px solid red" : "2px solid #ccc",
-          }}
+          className={`flex-1 min-w-[265px] px-3 py-2 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-8 mx-8 ${
+            submitted && (!title.trim() || title.trim().length < 3)
+              ? "border-2 border-red-500"
+              : "border border-gray-300"
+          }`}
         />
         {/**validacija u boji */}
         {submitted && !title.trim() && (
@@ -85,6 +91,37 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
             style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}
           >
             Naslov je obavezan!
+          </div>
+        )}
+
+        {/*Datum */}
+        <div style={{ marginBottom: "1rem" }}>
+          <label
+            htmlFor="date"
+            className="block text-base font-medium text-gray-700 mb-2"
+          >
+            Datum prijave:
+          </label>
+          <input
+            type="date"
+            value={dueDate}
+            min={today} //sprecava unos proslih datuma
+            onChange={(e) => setDueDate(e.target.value)}
+            style={{
+              padding: "0.5rem",
+              width: "50%",
+              border:
+                submitted && dueDate < today
+                  ? "1px solid red"
+                  : "1px solid #ccc",
+            }}
+          />
+        </div>
+        {submitted && dueDate < today && (
+          <div
+            style={{ color: "red", fontSize: "0.9rem", marginBottom: "0.5rem" }}
+          >
+            Datum ne moze biti iz prošlosti!
           </div>
         )}
 
