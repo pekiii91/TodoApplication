@@ -14,7 +14,6 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
   onTodoAdded,
   onClose,
 }) => {
-  //const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<TodoDTO>({
     title: "",
     isCompleted: false,
@@ -22,15 +21,69 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
     priority: "medium",
     isArchived: false,
   });
+
+  const [errors, setErrors] = useState<{ title?: string; date?: string }>({});
   const dispatch = useDispatch<AppDispatch>();
 
-  //if (!open) return null;
+  //Validacija pojedinih polja
+  const validateField = (name: string, value: string) => {
+    //const newErrors: { title?: string; date?: string } = {};
+    const today = new Date().toISOString().split("T")[0];
+    let error = "";
+
+    if (name === "title") {
+      if (!value.trim()) {
+        error = "Naslov zadatka je obavezan";
+      } else if (value.length > 100) {
+        error = "Naslov mora imate bar 3 karaktera";
+      }
+    }
+
+    if (name === "date") {
+      if (value < today) {
+        error = "Datum ne može biti u prošlosti";
+      }
+    }
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: error }));
+  };
+
+  const validate = () => {
+    const newErrors: { title?: string; date?: string } = {};
+    const today = new Date().toISOString().split("T")[0];
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Naslov je obavezan";
+    } else if (formData.title.trim().length < 3) {
+      newErrors.title = "Naslov ne sme biti duži od 3 karaktera";
+    }
+    //Validacija datuma (da ne moze proci datum iz proslosti)
+    if (formData.date < today) {
+      newErrors.date = "Datum ne sme biti iz prošlosti";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { id, value } = e.target;
+
+    if (e.target instanceof HTMLInputElement && e.target.type === "checkbox") {
+      // Checkbox
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData((prev) => ({ ...prev, [id]: checked }));
+      validateField(id, checked.toString());
+    } else {
+      // Input i Select
+      setFormData((prev) => ({ ...prev, [id]: value }));
+      validateField(id, value);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) {
-      toast.error("Naslov je obavezan");
-      return;
-    }
+    if (!validate()) return;
 
     try {
       await dispatch(addTodo(formData)).unwrap();
@@ -42,7 +95,9 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
         priority: "medium",
         isArchived: false,
       });
-      // setIsOpen(false);
+
+      setErrors({});
+
       onTodoAdded(); //refresuje listu taskova
       onClose(); // zatvara modal
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,14 +107,13 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
   };
 
   const handleClose = () => {
-    // setIsOpen(false);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="rounded-2xl shadow-2xl w-[270px] min-h-[300px] animate-in fade-in-0 zoom-in-95 duration-200 border border-gray-200"
+        className="rounded-2xl shadow-2xl w-[280px] min-h-[300px] animate-in fade-in-0 zoom-in-95 duration-200 border border-gray-200"
         style={{ background: "#f9f9f9" }}
       >
         {/* Header */}
@@ -83,13 +137,18 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
               type="text"
               id="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="flex-1 min-w-[265px] px-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={handleChange}
+              className={`flex-1 min-w-[265px] px-4 py-3 border rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.title
+                  ? "border-2 border-red-500"
+                  : "border border-gray-300"
+              }`}
               placeholder="Unesite naziv zadatka"
               required
             />
+            {errors.title && (
+              <p className="text-sm text-red-500 mt-2">{errors.title}</p>
+            )}
           </div>
 
           {/* Datum */}
@@ -104,11 +163,16 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
               type="date"
               id="date"
               value={formData.date}
-              onChange={(e) =>
-                setFormData({ ...formData, date: e.target.value })
-              }
-              className="flex-1 min-w-[266px] rounded-lg px-4 py-3 text-lg text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={handleChange}
+              className={`flex-1 min-w-[266px] rounded-lg px-4 py-3 text-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.date
+                  ? "border-2 border-red-500"
+                  : "border border-gray-300"
+              }`}
             />
+            {errors.date && (
+              <p className="text-red-500 text-sm mt-1">{errors.date}</p>
+            )}
           </div>
 
           {/* Prioritet */}
@@ -122,12 +186,7 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
             <select
               id="priority"
               value={formData.priority}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  priority: e.target.value as "low" | "medium" | "high",
-                })
-              }
+              onChange={handleChange}
               className="w-full border rounded-lg px-4 py-3 text-lg text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="low">Nizak</option>
@@ -142,9 +201,7 @@ const AddTodoModal: React.FC<AddTodoModalProps> = ({
               type="checkbox"
               id="isCompleted"
               checked={formData.isCompleted}
-              onChange={(e) =>
-                setFormData({ ...formData, isCompleted: e.target.checked })
-              }
+              onChange={handleChange}
               className="h-6 w-6 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
             />
             <label

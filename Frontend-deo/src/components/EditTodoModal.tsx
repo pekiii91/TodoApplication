@@ -66,16 +66,6 @@ const EditTodoModal: React.FC<Props> = ({ todo, onClose, onUpdated }) => {
           </h2>
         </div>
 
-        {/*</div><div
-      style={{
-        marginBottom: "5rem",
-        border: "3px solid #ccc",
-        padding: "2rem",
-        background: "#f9f9f9",
-      }}
-    >
-      <h4>Izmeni zadatak</h4>*/}
-
         <input
           type="text"
           placeholder="Naslov zadatka"
