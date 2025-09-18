@@ -30,6 +30,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
+import LogoutModal from "./LogoutModal";
 
 const TodoList: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
@@ -51,6 +52,8 @@ const TodoList: React.FC = () => {
   const { items, currentPage, totalPages, loading, error } = useSelector(
     (state: RootState) => state.todos
   );
+  //state za logout modal
+  const [showLogoutModalOpen, setShowLogoutModalOpen] = useState(false);
 
   //Fetch podataka
   useEffect(() => {
@@ -568,6 +571,25 @@ const TodoList: React.FC = () => {
             }
             setEditingTodo(null);
           }}
+        />
+      )}
+
+      {/* Logout Modal */}
+      <button
+        onClick={() => setShowLogoutModalOpen(true)}
+        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+      >
+        Logout
+      </button>
+
+      {showLogoutModalOpen && (
+        <LogoutModal
+          onConfirm={() => {
+            localStorage.removeItem("token"); //brise token
+            setShowLogoutModalOpen(false);
+            navigate("/login");
+          }}
+          onCancel={() => setShowLogoutModalOpen(false)}
         />
       )}
     </div>

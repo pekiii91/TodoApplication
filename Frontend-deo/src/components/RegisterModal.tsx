@@ -13,8 +13,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  //if (isOpen) return null; //modal se ne prikazuje ako nije otvoren
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -30,8 +28,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ onClose }) => {
       const token = response.data.token; //Backend odmah vraca token
       localStorage.setItem("token", token);
       console.log("Korisnik registrovan i token sacuvan:", token);
-
-      // navigate("/"); // odmah ide na početnu stranicu
 
       navigate("/"); //obavesti roditelja da je registracija uspesna
       onClose(); //zatvori modal
