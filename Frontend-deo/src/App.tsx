@@ -7,8 +7,10 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
+import { useTokenExpiration } from "./hooks/useTokenExpiration";
 
 function App() {
+  useTokenExpiration(); // provera isteka tokena
   const isAutheticated = () => {
     return localStorage.getItem("token") !== null;
   };
@@ -34,8 +36,11 @@ function App() {
               </PrivateRoute>
             }
           />
+          {/*fallback-sve nepoznate rute salje na login */}
           <Route path="/" element={<Navigate to="/"></Navigate>} />
         </Routes>
+
+        {/*Toast poruke */}
         <ToastContainer
           position="top-right"
           autoClose={5000}
@@ -48,6 +53,8 @@ function App() {
           pauseOnHover
           theme="dark"
         ></ToastContainer>
+
+        {/*Citati */}
         <div className="random-quotes">
           <RandomQuotes />
         </div>
